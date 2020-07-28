@@ -6,35 +6,21 @@ import random
 import json
 import os
 import numpy as np
-from my_server_setting import server, database, username, password, driver 
+
+from server_settings import server, database, username, password, driver 
+from timetable import gen_timetable
 
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
-app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+app.jinja_env.add_extension("jinja2.ext.loopcontrols")
 
 # 入浴時間リスト
 # 七宝寮
-times_cloisonne = []
-times_cloisonne.append(datetime.datetime.strptime('17:00', "%H:%M"))
-while times_cloisonne[-1] < datetime.datetime.strptime('22:50', "%H:%M"):
-    times_cloisonne.append(times_cloisonne[-1] + datetime.timedelta(minutes=25))
-i=0
-while i < len(times_cloisonne):
-    times_cloisonne[i] = times_cloisonne[i].strftime("%H:%M")
-    i += 1
+times_cloisonne = gen_timetable("17:00", "22:50", "25")
 # 紫雲寮
-times_purple = []
-times_purple.append(datetime.datetime.strptime('17:00', "%H:%M"))
-while times_purple[-1] < datetime.datetime.strptime('20:45', "%H:%M"):
-    times_purple.append(times_purple[-1] + datetime.timedelta(minutes=45))
-times_purple.append(times_purple[-1] + datetime.timedelta(minutes=15))
-while times_purple[-1] < datetime.datetime.strptime('22:30', "%H:%M"):
-    times_purple.append(times_purple[-1] + datetime.timedelta(minutes=45))
-times_purple.append(times_purple[-1] + datetime.timedelta(minutes=30))
-i=0
-while i < len(times_purple):
-    times_purple[i] = times_purple[i].strftime("%H:%M")
-    i += 1
+# 入浴時間が点呼とかぶらない・浴室利用可能時間を超えないように
+avoid = [{"time":"21:00","type":"restart"}, {"time":"23:00", "type":"shorten"}]
+times_purple = gen_timetable("17:00", "22:50", "45", avoid=avoid)
 
 # favicon設定
 @app.route('/favicon.ico')
