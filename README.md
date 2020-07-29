@@ -1,13 +1,8 @@
-<style>
-    h1 {
-        display: flex;
-        justify-content: ;
-    }
-    h1 img {
-        margin-right: 20px
-    }
-</style>
-# <img src="img/bath.png" width=100px> 香川高専詫間キャンパス学生寮 <br> 浴室予約システム
+# 香川高専詫間キャンパス学生寮浴室予約システム
+<div align="center">
+<img src="img/bath.png" width=100px>
+</div>
+
 本システムは香川高専詫間キャンパスの学生寮における，浴室での三密回避を目的に開発しています．  
 
 
@@ -15,7 +10,6 @@
 ![screenshot](img/screenshot.jpg)
 現在の男子寮生の予約画面です．  
 25分刻みで予約枠があります．
-
 
 ## 動作環境
 + サーバー
