@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
     <head>
+		<meta charset="utf-8">
         <style>
             #error{
                 color: red;
             }
         </style>
         <title>浴室予約システム</title>
+        <link rel="icon" href="/favicon.ico"/>
     </head>
     <body>
         <div>
@@ -20,6 +22,8 @@
             <p id=error>ログイン時にエラーが発生しました．</p>
             {% elif Error == 3 %}
             <p id=error>不正な操作が確認されました．最初からやり直してください．</p>
+            {% elif Error == 4 %}
+            <p id=error>ユーザーIDが誤っています．先頭に英字をつけて入力しているか確認してください．</p>
             {% endif %}
             <form action="/reserve" method="POST">
                 <input type="text" name="userid" placeholder="学籍番号" required/><br>

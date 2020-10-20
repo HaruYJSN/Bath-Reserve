@@ -4,34 +4,29 @@ import hashlib
 import pyodbc
 import random
 import json
-from my_server_setting import server, database, username, password, driver 
+import os
+import numpy as np
+
+from server_settings import server, database, username, password, driver 
+from timetable import gen_timetable
+
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
-app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+app.jinja_env.add_extension("jinja2.ext.loopcontrols")
+tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
 # 入浴時間リスト
 # 七宝寮
-times_cloisonne = []
-times_cloisonne.append(datetime.datetime.strptime('17:00', "%H:%M"))
-while times_cloisonne[-1] < datetime.datetime.strptime('22:50', "%H:%M"):
-    times_cloisonne.append(times_cloisonne[-1] + datetime.timedelta(minutes=25))
-i=0
-while i < len(times_cloisonne):
-    times_cloisonne[i] = times_cloisonne[i].strftime("%H:%M")
-    i += 1
+times_cloisonne = gen_timetable("17:00", "22:50", "25")
 # 紫雲寮
-times_purple = []
-times_purple.append(datetime.datetime.strptime('17:00', "%H:%M"))
-while times_purple[-1] < datetime.datetime.strptime('20:45', "%H:%M"):
-    times_purple.append(times_purple[-1] + datetime.timedelta(minutes=45))
-times_purple.append(times_purple[-1] + datetime.timedelta(minutes=15))
-while times_purple[-1] < datetime.datetime.strptime('22:30', "%H:%M"):
-    times_purple.append(times_purple[-1] + datetime.timedelta(minutes=45))
-times_purple.append(times_purple[-1] + datetime.timedelta(minutes=30))
-i=0
-while i < len(times_purple):
-    times_purple[i] = times_purple[i].strftime("%H:%M")
-    i += 1
+# 入浴時間が点呼とかぶらない・浴室利用可能時間を超えないように
+avoid = [{"time":"21:00","type":"restart"}, {"time":"23:00", "type":"shorten"}]
+times_purple = gen_timetable("17:00", "22:50", "45", avoid=avoid)
+
+# favicon設定
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, "img"), "favicon.ico", mimetype='image/vnd.microsoft.icon')
 
 # ログインページへの遷移
 @app.route("/", methods=["GET", "POST"])
@@ -59,6 +54,8 @@ def login_manager():
         i += 1
     if userid == "" or userpassword == "":
         return render_template("index.html", Error=1)
+    elif result == None:
+        return render_template("index.html", Error=4)
     elif result[0] != userpassword:
         return render_template("index.html", Error=2)
     # 寮取得
@@ -67,8 +64,9 @@ def login_manager():
     result = cursor.fetchone()
     dormitory_type = result[0]
     # DBから予約状況取得
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz_jst)
     today = now.strftime("%Y_%m_%d ")
+    nowtime = datetime.datetime.strptime(now.strftime("%H:%M"),"%H:%M")
     # 七宝寮 or 紫雲寮
     sql = "SELECT "
     i = 0
@@ -88,13 +86,9 @@ def login_manager():
         i += 1
         if i == 5:
             i += 1
-    print(sql)
     sql_purple = sql[:-2] +"FROM reserve WHERE bath_type = 2"
     cursor.execute(sql_purple)
     reservation_purple = cursor.fetchone()
-    print(reservation_purple)
-    print(times_purple[5])
-    print(len(times_purple))
     # 既存の自身の予約を確認
     sql = "SELECT bath_type, date FROM reserve WHERE userid=? AND date LIKE ?"
     cursor.execute(sql, userid, today+"%")
@@ -116,10 +110,18 @@ def login_manager():
     session['reserved'] = reserved
     session['dormitory_type'] = dormitory_type
     if dormitory_type == 0:
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type))
+        timeover = 0
+        for i in range(len(times_cloisonne)):
+            if nowtime >= datetime.datetime.strptime(times_cloisonne[i], "%H:%M"):
+                timeover = i
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover))
         return responce
     elif dormitory_type == 1:
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type))
+        timeover = len(times_purple)
+        for i in range(len(times_purple)):
+            if nowtime >= datetime.datetime.strptime(times_purple[i], "%H:%M"):
+                timeover = i
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover))
         return responce
 
 # 予約の実行，予約完了画面への遷移
@@ -130,11 +132,15 @@ def reserve_register():
     desired_time = request.form["desired_time"]
     now = datetime.datetime.now()
     today = now.strftime("%Y_%m_%d ")
+    nowtime = datetime.datetime.strptime(now.strftime("%H:%M"),"%H:%M")
     bath_type = int(desired_time)//100
     if session['dormitory_type'] == 0:
         desired_time = now.strftime("%Y_%m_%d ") + times_cloisonne[int(desired_time)%100]
     elif session['dormitory_type'] == 1:
         desired_time = now.strftime("%Y_%m_%d ") + times_purple[int(desired_time)%100]
+    if now > datetime.datetime.strptime(desired_time, "%Y_%m_%d %H:%M"):
+        responce = make_response(render_template("index.html", Error=3))
+        return responce
     # DB接続
     cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+password)
     cursor = cnxn.cursor()
@@ -211,4 +217,4 @@ def user_resister():
     return render_template("user_regist_success.html")
 
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
