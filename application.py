@@ -13,6 +13,7 @@ from timetable import gen_timetable
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
 app.jinja_env.add_extension("jinja2.ext.loopcontrols")
+tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
 # 入浴時間リスト
 # 七宝寮
@@ -53,6 +54,8 @@ def login_manager():
         i += 1
     if userid == "" or userpassword == "":
         return render_template("index.html", Error=1)
+    elif result == None:
+        return render_template("index.html", Error=4)
     elif result[0] != userpassword:
         return render_template("index.html", Error=2)
     # 寮取得
@@ -61,8 +64,9 @@ def login_manager():
     result = cursor.fetchone()
     dormitory_type = result[0]
     # DBから予約状況取得
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(tz_jst)
     today = now.strftime("%Y_%m_%d ")
+    nowtime = datetime.datetime.strptime(now.strftime("%H:%M"),"%H:%M")
     # 七宝寮 or 紫雲寮
     sql = "SELECT "
     i = 0
@@ -106,10 +110,18 @@ def login_manager():
     session['reserved'] = reserved
     session['dormitory_type'] = dormitory_type
     if dormitory_type == 0:
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type))
+        timeover = 0
+        for i in range(len(times_cloisonne)):
+            if nowtime >= datetime.datetime.strptime(times_cloisonne[i], "%H:%M"):
+                timeover = i
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover))
         return responce
     elif dormitory_type == 1:
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type))
+        timeover = len(times_purple)
+        for i in range(len(times_purple)):
+            if nowtime >= datetime.datetime.strptime(times_purple[i], "%H:%M"):
+                timeover = i
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover))
         return responce
 
 # 予約の実行，予約完了画面への遷移
@@ -120,11 +132,15 @@ def reserve_register():
     desired_time = request.form["desired_time"]
     now = datetime.datetime.now()
     today = now.strftime("%Y_%m_%d ")
+    nowtime = datetime.datetime.strptime(now.strftime("%H:%M"),"%H:%M")
     bath_type = int(desired_time)//100
     if session['dormitory_type'] == 0:
         desired_time = now.strftime("%Y_%m_%d ") + times_cloisonne[int(desired_time)%100]
     elif session['dormitory_type'] == 1:
         desired_time = now.strftime("%Y_%m_%d ") + times_purple[int(desired_time)%100]
+    if now > datetime.datetime.strptime(desired_time, "%Y_%m_%d %H:%M"):
+        responce = make_response(render_template("index.html", Error=3))
+        return responce
     # DB接続
     cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+password)
     cursor = cnxn.cursor()
