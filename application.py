@@ -77,8 +77,15 @@ def login_manager():
     sql_large = sql[:-2] +" FROM reserve WHERE bath_type = 1"
     cursor.execute(sql_small)
     reservation_small = cursor.fetchone()
+    for i, value in enumerate(reservation_small):
+        if value == None:
+            reservation_small[i] = 0
     cursor.execute(sql_large)
     reservation_large = cursor.fetchone()
+    for i, value in enumerate(reservation_large):
+        if value == None:
+            reservation_large[i] = 0
+    print(reservation_large)
     sql = "SELECT "
     i = 0
     while i < len(times_purple)-1:
@@ -89,6 +96,9 @@ def login_manager():
     sql_purple = sql[:-2] +"FROM reserve WHERE bath_type = 2"
     cursor.execute(sql_purple)
     reservation_purple = cursor.fetchone()
+    for i, value in enumerate(reservation_purple):
+        if value == None:
+            reservation_purple[i] = 0
     # 既存の自身の予約を確認
     sql = "SELECT bath_type, date FROM reserve WHERE userid=? AND date LIKE ?"
     cursor.execute(sql, userid, today+"%")
@@ -150,6 +160,9 @@ def reserve_register():
         sql = "SELECT SUM(CASE WHEN date = ? THEN 1 ELSE 0 END) FROM reserve WHERE bath_type=?"
         cursor.execute(sql, desired_time, bath_type)
         result = cursor.fetchone()
+        for i, value in enumerate(result):
+            if value == None:
+                result[i] = 0
         print(result)
         if (result[0] >= 9 and bath_type == 1) or (result[0] >= 4 and bath_type == 0) or (result[0] >= 6 and bath_type == 2):
             return render_template("index.html", Error=3)
