@@ -2,9 +2,9 @@ venv/*
 my_server_settings.py
 .vscode/*
 __pycache__/
-
 .deployment
-
 my_server_setting.py
-
 dormitory.csv
+.ipynb_checkpoints/*
+IC_card_numbers.xlsx
+gen_user_regist_uql.ipynb
