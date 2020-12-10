@@ -13,6 +13,7 @@ from timetable import gen_timetable
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
 app.jinja_env.add_extension("jinja2.ext.loopcontrols")
+app.permanent_session_lifetime = datetime.timedelta(minutes=20)
 tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
 # 入浴時間リスト
@@ -27,6 +28,11 @@ times_purple = gen_timetable("17:00", "22:50", "45", avoid=avoid)
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, "img"), "favicon.ico", mimetype='image/vnd.microsoft.icon')
+
+# CSS設定
+@app.route('/css/default.css')
+def default_css():
+    return send_file("templates/static/css/default.css")
 
 # ログインページへの遷移
 @app.route("/", methods=["GET", "POST"])
@@ -188,6 +194,11 @@ def reserve_register():
     session.pop('dormitory_type', None)
     return render_template("reserve_success.html", desired_time=desired_time, userid=userid)
     
+# 抽選画面への遷移
+@app.route("/lottery_game", methods=["GET"])
+def lottery_form():
+    return render_template("lottery_game.html")
+
 # ユーザー登録への遷移
 @app.route("/user_regist_form", methods=["GET", "POST"])
 def user_regist_form():
@@ -229,5 +240,19 @@ def user_resister():
     # 返却処理
     return render_template("user_regist_success.html")
 
+# ユーザーパスワードの変更
+@app.route("/chpass", methods=["GET", "POST"])
+def chpass():
+    return render_template("comingsoon.html")
+
+# ログアウト
+@app.route("/logout")
+def logoout():
+    session.pop('userid', None)
+    session.pop('login_flag', None)
+    session.pop('reserved', None)
+    session.pop('dormitory_type', None)
+    return render_template("index.html", Error=0)
+
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000, threaded=True)
+    app.run(debug=True, host="0.0.0.0", port=5000, threaded=True)
