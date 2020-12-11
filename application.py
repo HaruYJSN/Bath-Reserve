@@ -197,7 +197,77 @@ def reserve_register():
 # 抽選画面への遷移
 @app.route("/lottery_game", methods=["GET"])
 def lottery_form():
-    return render_template("lottery_game.html")
+    # ユーザ変数取得
+    userid = session['userid']
+    # DB接続
+    cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+password)
+    cursor = cnxn.cursor()
+    # DBに学籍番号の存在を問い合わせ
+    sql = "SELECT * FROM lottery WHERE userid=?"
+    cursor.execute(sql, userid)
+    result = cursor.fetchone()
+    if(result == None):
+        return render_template("lottery_game.html", userid=userid, available=True)
+    return render_template("lottery_game.html", userid=userid, available=False)
+
+# 抽選，抽選結果の表示
+@app.route("/lottery", methods=["POST"])
+def lottery():
+    # ユーザ変数取得
+    userid = session['userid']
+    # DB接続
+    cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+password)
+    cursor = cnxn.cursor()
+    # DBに学籍番号の存在を問い合わせ
+    sql = "SELECT userid FROM lottery WHERE userid=?"
+    cursor.execute(sql, userid)
+    result = cursor.fetchone()
+    # 学籍番号が存在する(抽抽選選済み)のとき
+    if result != None:
+        sql = "SELECT lott_num FROM lottery WHERE userid=?"
+        cursor.execute(sql, userid)
+        result = cursor.fetchone()
+        # DB切断
+        cursor.close()
+        cnxn.close()
+        if result[0] == 0:
+            return render_template("lottery_result.html", userid=userid, prize=1)
+        elif result[0] == 1 or 2:
+            return render_template("lottery_result.html", userid=userid, prize=2)
+        elif result[0] == 3 or 4 or 5:
+            return render_template("lottery_result.html", userid=userid, prize=3)
+        elif result[0] == 6 or 7 or 8 or 9:
+            return render_template("lottery_result.html", userid=userid, prize=4)
+        elif result[0] == 10 or 11 or 12 or 13 or 14:
+            return render_template("lottery_result.html", userid=userid, prize=5)
+        else:
+            return render_template("lottery_result.html", userid=userid, prize=6)
+    # 学籍番号が存在しない(未抽選)のとき
+    elif result == None:
+        sql = "SELECT lott_num FROM lottery WHERE userid = ''"
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        print(result)
+        number = random.choice(result)[0]
+        print(number)
+        sql = "UPDATE lottery SET userid=? WHERE lott_num=?"
+        cursor.execute(sql, userid, number)
+        cnxn.commit()
+        # DB切断
+        cursor.close()
+        cnxn.close()
+        if number == 0:
+            return render_template("lottery_result.html", userid=userid, prize=1)
+        if number == 1 or number == 2:
+            return render_template("lottery_result.html", userid=userid, prize=2)
+        if number == 3 or number == 4 or number ==  5:
+            return render_template("lottery_result.html", userid=userid, prize=3)
+        if number == 6 or number == 7 or number == 8 or number == 9:
+            return render_template("lottery_result.html", userid=userid, prize=4)
+        if number == 10 or number == 11 or number == 12 or number == 13 or number == 14:
+            return render_template("lottery_result.html", userid=userid, prize=5)
+        print("else")
+        return render_template("lottery_result.html", userid=userid, prize=6)
 
 # ユーザー登録への遷移
 @app.route("/user_regist_form", methods=["GET", "POST"])
@@ -240,7 +310,7 @@ def user_resister():
     # 返却処理
     return render_template("user_regist_success.html")
 
-# ユーザーパスワードの変更
+# ユーザーパスワードの変更(未実装)
 @app.route("/chpass", methods=["GET", "POST"])
 def chpass():
     return render_template("comingsoon.html")

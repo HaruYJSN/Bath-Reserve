@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" >
+        <link rel="stylesheet" href="/css/default.css">
+        <link rel="icon" href="/favicon.ico"/>
+        <title>浴室予約システム</title>
+    </head>
+    <body>
+        <h1>浴室予約システム</h1>
+        <nav id=navbar>
+            <ul>
+                <li><a href="/reserve">予約画面</a></li>
+                <li><a href="/chpass">パスワード変更</a></li>
+                <li><a href="/logout">ログアウト</a></li>
+            </ul>
+        </nav>
+        <p>{{userid}}さん，詫間キャンパス学生寮 オンライン抽選の結果は<br>
+        {% if prize == 1 %}
+            <h1>1等賞</h1>
+        {% elif prize == 2 %}
+            <h2>2等賞</h2>
+        {% elif prize == 3 %}
+            <h2>3等賞</h2>
+        {% elif prize == 4 %}
+            <h3>4等賞</h3>
+        {% elif prize == 5 %}
+            <h3>5等賞</h3>
+        {% elif prize == 6 %}
+            <h3>ハズレ</h3>
+        {% endif %}
+        <p>でした．</p>
+    </body>
+</html>
