@@ -9,17 +9,26 @@
     <body>
         <h1>浴室予約システム</h1>
         <nav id=navbar>
-            <ul id=navbar style="padding: 0%;">
+            <ul>
                 <li><a href="/reserve">予約画面</a></li>
-                {% if lottery_date[0] == lottery_date[1] %}
-                    <li><a href="/lottery_game">抽選</a></li>
-                {% endif %}
                 <li><a href="/chpass">パスワード変更</a></li>
                 <li><a href="/logout">ログアウト</a></li>
             </ul>
         </nav>
-        <p>{{userid}}さん，以下の時間に浴室を予約しました．</p>
-        <p>{{desired_time}}</p>
-        <a href="/">ログイン画面に戻る</a>
+        <p>{{userid}}さん，詫間キャンパス学生寮 オンライン抽選の結果は<br>
+        {% if prize == 1 %}
+            <h1>1等賞</h1>
+        {% elif prize == 2 %}
+            <h2>2等賞</h2>
+        {% elif prize == 3 %}
+            <h2>3等賞</h2>
+        {% elif prize == 4 %}
+            <h3>4等賞</h3>
+        {% elif prize == 5 %}
+            <h3>5等賞</h3>
+        {% elif prize == 6 %}
+            <h3>ハズレ</h3>
+        {% endif %}
+        <p>でした．</p>
     </body>
 </html>

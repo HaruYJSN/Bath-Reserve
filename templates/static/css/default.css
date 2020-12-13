@@ -1,0 +1,15 @@
+#error{
+    color: red;
+}
+*{
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+#navbar ul li{
+    list-style: none;
+    display: inline;    
+}
+ul{
+    padding-inline-start: 0px;
+}

@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <style>
-            #error{
-                color: red;
-            }
-        </style>
-        <title>浴室予約システム</title>
+        <meta name="viewport" content="width=device-width" >
+        <link rel="stylesheet" href="/css/default.css">
         <link rel="icon" href="/favicon.ico"/>
+        <title>浴室予約システム</title>
     </head>
     <body>
         <h1>浴室予約システム</h1>
+        <nav id=navbar>
+            <ul class="navbar">
+                {% if lottery_date[0] == lottery_date[1] %}
+                    <li><a href="/lottery_game">抽選</a></li>
+                {% endif %}
+                <li><a href="/chpass">パスワード変更</a></li>
+                <li><a href="/logout">ログアウト</a></li>
+            </ul>
+        </nav>
         <p>ようこそ，{{userid}}さん．<br>{{today}}の浴室の予約を行います．</p>
         {% if Error == 1 %}
             <p id="error">ご希望の時間に予約することができませんでした．<br> 他の時間を選択してください．</p>

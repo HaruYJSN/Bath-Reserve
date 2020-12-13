@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" >
+        <link rel="stylesheet" href="/css/default.css">
+        <link rel="icon" href="/favicon.ico"/>
+        <title>浴室予約システム</title>
+    </head>
+    <body>
+        <h1>浴室予約システム</h1>
+        <nav id=navbar>
+            <ul>
+                <li><a href="/reserve">予約画面</a></li>
+                <li><a href="/chpass">パスワード変更</a></li>
+                <li><a href="/logout">ログアウト</a></li>
+            </ul>
+        </nav>
+        {% if available %}
+        <p>{{userid}}さん，詫間キャンパス学生寮 オンライン抽選ページへようこそ．<br>
+        下のボタンを押して抽選を開始してください．</p>
+        <form action="/lottery", method="POST">
+            <input type="submit" value="抽選する">
+        </form>
+        {% else %}
+        <p>{{userid}}さん，抽選ありがとうございました．<br>
+        結果は下のボタンから確認できます．</p>
+        <form action="/lottery", method="POST">
+            <input type="submit" value="結果を確認する">
+        </form>
+        {% endif %}
+    </body>
+</html>
