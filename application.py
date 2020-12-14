@@ -7,10 +7,10 @@ import json
 import os
 import numpy as np
 
-from server_settings import server, database, username, password, driver 
+from my_server_setting import server, database, username, password, driver 
 from timetable import gen_timetable
 
-lottery_date = [datetime.datetime.strptime("2020_12_14", "%Y_%m_%d")]
+lottery_date = ["2020_12_14 "]
 
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
@@ -138,14 +138,14 @@ def login_manager():
         for i in range(len(times_cloisonne)):
             if nowtime >= datetime.datetime.strptime(times_cloisonne[i], "%H:%M"):
                 timeover = i
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date.append(today)))
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date[0]==today))
         return responce
     elif dormitory_type == 1:
         timeover = len(times_purple)
         for i in range(len(times_purple)):
             if nowtime >= datetime.datetime.strptime(times_purple[i], "%H:%M"):
                 timeover = i
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date.append(today)))
+        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_purple, times_len=len(times_purple), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple, bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date==today))
         return responce
 
 # 予約の実行，予約完了画面への遷移
@@ -200,7 +200,7 @@ def reserve_register():
     # session.pop('login_flag', None)
     # session.pop('reserved', None)
     # session.pop('dormitory_type', None)
-    return render_template("reserve_success.html", desired_time=desired_time, userid=userid, lottery_date=lottery_date.append(today))
+    return render_template("reserve_success.html", desired_time=desired_time, userid=userid, lottery_date=lottery_date==today)
     
 # 抽選画面への遷移
 @app.route("/lottery_game", methods=["GET"])
@@ -217,8 +217,8 @@ def lottery_form():
     cursor.execute(sql, userid)
     result = cursor.fetchone()
     if(result == None):
-        return render_template("lottery_game.html", userid=userid, available=True, lottery_date=lottery_date.append(today))
-    return render_template("lottery_game.html", userid=userid, available=False, lottery_date=lottery_date.append(today))
+        return render_template("lottery_game.html", userid=userid, available=True, lottery_date=lottery_date==today)
+    return render_template("lottery_game.html", userid=userid, available=False, lottery_date=lottery_date==today)
 
 # 抽選，抽選結果の表示
 @app.route("/lottery", methods=["POST"])
@@ -243,17 +243,17 @@ def lottery():
         cursor.close()
         cnxn.close()
         if result[0] == 0:
-            return render_template("lottery_result.html", userid=userid, prize=1, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=1, lottery_date=lottery_date==today)
         elif result[0] == 1 or result[0] == 2:
-            return render_template("lottery_result.html", userid=userid, prize=2, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=2, lottery_date=lottery_date==today)
         elif result[0] == 3 or result[0] == 4 or result[0] == 5:
-            return render_template("lottery_result.html", userid=userid, prize=3, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=3, lottery_date=lottery_date==today)
         elif result[0] == 6 or result[0] == 7 or result[0] == 8 or result[0] == 9:
-            return render_template("lottery_result.html", userid=userid, prize=4, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=4, lottery_date=lottery_date==today)
         elif result[0] == 10 or result[0] == 11 or result[0] == 12 or result[0] == 13 or result[0] == 14:
-            return render_template("lottery_result.html", userid=userid, prize=5, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=5, lottery_date=lottery_date==today)
         else:
-            return render_template("lottery_result.html", userid=userid, prize=6, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=6, lottery_date=lottery_date==today)
     # 学籍番号が存在しない(未抽選)のとき
     elif result == None:
         sql = "SELECT lott_num FROM lottery WHERE userid = ''"
@@ -269,17 +269,17 @@ def lottery():
         cursor.close()
         cnxn.close()
         if number == 0:
-            return render_template("lottery_result.html", userid=userid, prize=1, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=1, lottery_date=lottery_date==today)
         if number == 1 or number == 2:
-            return render_template("lottery_result.html", userid=userid, prize=2, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=2, lottery_date=lottery_date==today)
         if number == 3 or number == 4 or number ==  5:
-            return render_template("lottery_result.html", userid=userid, prize=3, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=3, lottery_date=lottery_date==today)
         if number == 6 or number == 7 or number == 8 or number == 9:
-            return render_template("lottery_result.html", userid=userid, prize=4, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=4, lottery_date=lottery_date==today)
         if number == 10 or number == 11 or number == 12 or number == 13 or number == 14:
-            return render_template("lottery_result.html", userid=userid, prize=5, lottery_date=lottery_date.append(today))
+            return render_template("lottery_result.html", userid=userid, prize=5, lottery_date=lottery_date==today)
         print("else")
-        return render_template("lottery_result.html", userid=userid, prize=6, lottery_date=lottery_date.append(today))
+        return render_template("lottery_result.html", userid=userid, prize=6, lottery_date=lottery_date==today)
 
 # ユーザー登録への遷移
 @app.route("/user_regist_form", methods=["GET", "POST"])
@@ -327,7 +327,7 @@ def user_resister():
 def chpass():
     now = datetime.datetime.now(tz_jst)
     today = now.strftime("%Y_%m_%d ")
-    return render_template("comingsoon.html", lottery_date=lottery_date.append(today))
+    return render_template("comingsoon.html", lottery_date=lottery_date==today)
 
 # ログアウト
 @app.route("/logout")

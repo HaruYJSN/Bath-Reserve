@@ -11,7 +11,7 @@
         <nav id=navbar>
             <ul>
                 <li><a href="/reserve">予約画面</a></li>
-                {% if lottery_date[0] == lottery_date[1] %}
+                {% if lottery_date %}
                     <li><a href="/lottery_game">抽選</a></li>
                 {% endif %}
                 <li><a href="/logout">ログアウト</a></li>
