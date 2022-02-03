@@ -20,7 +20,7 @@ tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
 # 入浴時間リスト
 # 七宝寮
-times_cloisonne = gen_timetable("17:00", "22:50", "25")
+times_cloisonne = gen_timetable("16:10", "22:50", "25")
 # 紫雲寮
 # 入浴時間が点呼とかぶらない・浴室利用可能時間を超えないように
 avoid = [{"time":"21:00","type":"restart"}, {"time":"23:00", "type":"shorten"}]
@@ -77,10 +77,20 @@ def login_manager():
         cursor.execute(sql, userid)
         result = cursor.fetchone()
         dormitory_type = result[0]
+        # 風呂故障時の連絡
+        if str(dormitory_type) == "0":
+            sql1 = "SELECT breakdown FROM status"
+            cursor.execute(sql1)
+            resultst=cursor.fetchone()
+            if str(resultst[0]) == "1":
+                return render_template("maintenance.html")
     # DBから予約状況取得
     now = datetime.datetime.now(tz_jst)
-    today = now.strftime("%Y_%m_%d ")
+    today = datetime.datetime.now().strftime("%Y_%m_%d ")
+    print(now)
+    print(today)
     nowtime = datetime.datetime.strptime(now.strftime("%H:%M"),"%H:%M")
+    print(nowtime)
     ### 七宝寮 or 紫雲寮
     sql = "SELECT "
     i = 0
@@ -138,7 +148,7 @@ def login_manager():
         for i in range(len(times_cloisonne)):
             if nowtime >= datetime.datetime.strptime(times_cloisonne[i], "%H:%M"):
                 timeover = i
-        responce = make_response(render_template("reserve.html",today=now.strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date[0]==today))
+        responce = make_response(render_template("reserve.html",today=datetime.datetime.now().strftime("%m/%d") ,userid=userid, times=times_cloisonne, times_len=len(times_cloisonne), reservation_small=reservation_small, reservation_large=reservation_large, reservation_purple=reservation_purple,bath_type=bath_type, bath_time=bath_time, dormitory_type=dormitory_type, timeover=timeover, lottery_date=lottery_date[0]==today))
         return responce
     elif dormitory_type == 1:
         timeover = len(times_purple)
