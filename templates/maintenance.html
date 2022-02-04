@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" >
+        <link rel="stylesheet" href="/css/default.css">
+        <link rel="icon" href="/favicon.ico"/>
+        <title>浴室予約システム</title>
+    </head>
+    <body>
+        <h1>浴室予約システム</h1>
+        <nav id=navbar>
+            <ul id=navbar style="padding: 0%;">
+                <li><a href="/reserve">予約画面</a></li>
+                {% if lottery_date %}
+                    <li><a href="/lottery_game">抽選</a></li>
+                {% endif %}
+                <li><a href="/chpass">パスワード変更</a></li>
+                <li><a href="/logout">ログアウト</a></li>
+            </ul>
+        </nav>
+        <p>現在配管工事中のため,男子寮浴室は利用できません．</p>
+        <p>大変ご迷惑をおかけいたしますが,ご理解とご協力のほどよろしくお願いいたします.</p>
+        <a href="/logout">ログイン画面に戻る</a>
+    </body>
+</html>
