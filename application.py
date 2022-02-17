@@ -10,7 +10,7 @@ import numpy as np
 from my_server_setting import server, database, username, password, driver 
 from timetable import gen_timetable
 
-lottery_date = ["2020_12_14 "]
+lottery_date = ["2022_02_21 "]
 
 app = Flask(__name__)
 app.secret_key = str(random.randrange(9999999999999999))
@@ -280,16 +280,17 @@ def lottery():
         cnxn.close()
         if number == 0:
             return render_template("lottery_result.html", userid=userid, prize=1, lottery_date=lottery_date==today)
-        if number == 1 or number == 2:
+        elif number == 1 or number == 2:
             return render_template("lottery_result.html", userid=userid, prize=2, lottery_date=lottery_date==today)
-        if number == 3 or number == 4 or number ==  5:
+        elif number == 3 or number == 4 or number ==  5:
             return render_template("lottery_result.html", userid=userid, prize=3, lottery_date=lottery_date==today)
-        if number == 6 or number == 7 or number == 8 or number == 9:
+        elif number == 6 or number == 7 or number == 8 or number == 9:
             return render_template("lottery_result.html", userid=userid, prize=4, lottery_date=lottery_date==today)
-        if number == 10 or number == 11 or number == 12 or number == 13 or number == 14:
+        elif number == 10 or number == 11 or number == 12 or number == 13 or number == 14:
             return render_template("lottery_result.html", userid=userid, prize=5, lottery_date=lottery_date==today)
-        print("else")
-        return render_template("lottery_result.html", userid=userid, prize=6, lottery_date=lottery_date==today)
+        # print("else")
+        else:
+            return render_template("lottery_result.html", userid=userid, prize=0, lottery_date=lottery_date==today)
 
 # ユーザー登録への遷移
 @app.route("/user_regist_form", methods=["GET", "POST"])
